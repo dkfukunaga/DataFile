@@ -11,21 +11,26 @@
 
 class DataFile {
 public:
+    // constructors/destructor
     DataFile();
     DataFile(std::string file_name);
     ~DataFile();
 
+    // open/close functions
     void                            open();
     void                            open(std::string file_name);
     void                            close();
 
+    // getters/accessors
     std::string                     getFileName() const;
     std::string                     getFileExtension() const;
     int                             getFileSize() const;
 
+    // setters/mutators
     void                            setFileName(std::string file_name);
     void                            setFileExtension(std::string extension);
 
+    // fstream status
     bool                            isOpen() const;
     bool                            eof() const;
     bool                            good() const;
@@ -33,29 +38,35 @@ public:
     bool                            bad() const;
     void                            clear();
 
+    // helper functions
     void                            moveReadPointer(long long pos);
     void                            moveWritePointer(long long pos);
 
+    // read/write functions
     void                            read(std::string *str);
     void                            read(std::string *str, long long pos);
     void                            write(const std::string &str);
     void                            write(const std::string &str, long long pos);
 
+    // templated read functions
     template<typename T>            void read(T *data);
     template<typename T>            void read(T *data, long long pos);
     template<typename T, size_t N>  void read(const T (&arr)[N]);
     template<typename T, size_t N>  void read(const T (&arr)[N], long long pos);
 
+    // templated write functions
     template<typename T>            void write(const T *data);
     template<typename T>            void write(const T *data, long long pos);
     template<typename T, size_t N>  void write(const T (&arr)[N]);
     template<typename T, size_t N>  void write(const T (&arr)[N], long long pos);
 
 private:
+    // member variables
     std::unique_ptr<std::fstream>   data_file_;
     std::string                     file_name_;
     std::string                     file_extension_;
 
+    // static constants
     static const std::string        default_file_extension_;
 };
 

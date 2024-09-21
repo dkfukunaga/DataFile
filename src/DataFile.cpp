@@ -2,9 +2,15 @@
 
 #include "DataFile.h"
 
+/***** STATIC CONSTANTS *****/
+
 const std::string DataFile::default_file_extension_ = ".dat";
 
+/***** CONSTRUCTORS/DESTRUCTOR *****/
 
+// Default constructor
+//
+// sets a blank filename and creates a unique_ptr to an fstream
 DataFile::DataFile():
     file_name_(""),
     data_file_(std::make_unique<std::fstream>()) { };
@@ -20,49 +26,7 @@ DataFile::~DataFile() {
     close();
 }
 
-
-std::string DataFile::getFileName() const { return file_name_; }
-
-std::string DataFile::getFileExtension() const { return file_extension_.substr(1); }
-
-void DataFile::setFileName(std::string file_name) {
-    int len = file_name.length();
-    if (len > 4 && file_name.substr(len - 4) == file_extension_)
-        file_name_ = file_name; 
-    else
-        file_name_ = file_name + file_extension_;
-}
-
-void DataFile::setFileExtension(std::string extension) {
-    file_extension_ = "." + extension;
-}
-
-bool DataFile::isOpen() const { return data_file_->is_open(); }
-
-int DataFile::getFileSize() const {
-    // check if file is open
-    if (!isOpen())
-        return -1;  // indicates error
-    // save current position
-    auto curr_pos = data_file_->tellg();
-    // move to end of file and save position
-    data_file_->seekg(0, std::ios::end);
-    auto file_size = data_file_->tellg();
-    // move back to current position
-    data_file_->seekg(curr_pos);
-    // return end position, which is the file size in bytes
-    return static_cast<int>(file_size);
-}
-
-bool DataFile::eof() const { return data_file_->eof(); }
-
-bool DataFile::good() const { return data_file_->good(); }
-
-bool DataFile::fail() const { return data_file_->fail(); }
-
-bool DataFile::bad() const { return data_file_->bad(); }
-
-void DataFile::clear() { data_file_->clear(); }
+/***** OPEN/CLOSE FUNCTIONS *****/
 
 void DataFile::open() {
     if (file_name_.empty())
@@ -93,6 +57,56 @@ void DataFile::close() {
     }
 }
 
+/***** GETTERS/ACCESSORS *****/
+
+std::string DataFile::getFileName() const { return file_name_; }
+
+std::string DataFile::getFileExtension() const { return file_extension_.substr(1); }
+
+int DataFile::getFileSize() const {
+    // check if file is open
+    if (!isOpen())
+        return -1;  // indicates error
+    // save current position
+    auto curr_pos = data_file_->tellg();
+    // move to end of file and save position
+    data_file_->seekg(0, std::ios::end);
+    auto file_size = data_file_->tellg();
+    // move back to current position
+    data_file_->seekg(curr_pos);
+    // return end position, which is the file size in bytes
+    return static_cast<int>(file_size);
+}
+
+/***** SETTERS/MUTATORS *****/
+
+void DataFile::setFileName(std::string file_name) {
+    int len = file_name.length();
+    if (len > 4 && file_name.substr(len - 4) == file_extension_)
+        file_name_ = file_name; 
+    else
+        file_name_ = file_name + file_extension_;
+}
+
+void DataFile::setFileExtension(std::string extension) {
+    file_extension_ = "." + extension;
+}
+
+/***** FILE STATUS/FLAGS *****/
+
+bool DataFile::isOpen() const { return data_file_->is_open(); }
+
+bool DataFile::eof() const { return data_file_->eof(); }
+
+bool DataFile::good() const { return data_file_->good(); }
+
+bool DataFile::fail() const { return data_file_->fail(); }
+
+bool DataFile::bad() const { return data_file_->bad(); }
+
+void DataFile::clear() { data_file_->clear(); }
+
+/***** HELPER FUNCTIONS *****/
 
 void DataFile::moveReadPointer(long long pos) {
     // check if file is open
@@ -122,6 +136,7 @@ void DataFile::moveWritePointer(long long pos) {
     data_file_->seekp(pos, (pos < 0 ? std::ios::end : std::ios::beg));
 }
 
+/***** READ FUNCTIONS *****/
 
 void DataFile::read(std::string *str) {
     // check if file is open
@@ -149,6 +164,8 @@ void DataFile::read(std::string *str, long long pos) {
     moveReadPointer(pos);
     read(str);
 }
+
+/***** WRITE FUNCTIONS *****/
 
 void DataFile::write(const std::string &str) {
     // check string length
