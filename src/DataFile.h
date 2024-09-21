@@ -4,7 +4,6 @@
 #define DATA_FILE_H
 
 #include <fstream>
-#include <iostream>
 #include <memory>
 #include <string>
 #include <vector>
@@ -24,7 +23,7 @@ public:
     // getters/accessors
     std::string                     getFileName() const;
     std::string                     getFileExtension() const;
-    int                             getFileSize() const;
+    long long                       getFileSize() const;
 
     // setters/mutators
     void                            setFileName(std::string file_name);

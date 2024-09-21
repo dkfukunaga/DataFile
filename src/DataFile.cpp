@@ -63,7 +63,7 @@ std::string DataFile::getFileName() const { return file_name_; }
 
 std::string DataFile::getFileExtension() const { return file_extension_.substr(1); }
 
-int DataFile::getFileSize() const {
+long long DataFile::getFileSize() const {
     // check if file is open
     if (!isOpen())
         return -1;  // indicates error
@@ -75,7 +75,7 @@ int DataFile::getFileSize() const {
     // move back to current position
     data_file_->seekg(curr_pos);
     // return end position, which is the file size in bytes
-    return static_cast<int>(file_size);
+    return static_cast<long long>(file_size);
 }
 
 /***** SETTERS/MUTATORS *****/
