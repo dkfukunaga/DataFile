@@ -5,19 +5,22 @@
 
 #include "..\src\DataFile.h"
 #include <string>
+#include <vector>
 
-struct Item {
+struct TestItem {
     std::string     name;
     int             int_num;
     double          double_num;
     int             arr[10];
 
-    Item();
-    Item(std::string new_name, int new_int, double new_double);
+    TestItem();
+    TestItem(std::string new_name, int new_int, double new_double);
 
     void            serialize(DataFile &file);
     void            deserialize(DataFile &file);
+    void            hexDump(DataFile &file);
 
+    void            buildArr(int num);
     std::string     toString();
 };
 
