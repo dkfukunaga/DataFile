@@ -3,6 +3,7 @@
 #include "testItem.h"
 
 
+
 TestItem::TestItem():
     name("TESTNAME"),
     int_num(42),
@@ -15,6 +16,20 @@ TestItem::TestItem(std::string new_name, int new_int, double new_double):
     int_num(new_int),
     double_num(new_double) {
     buildArr(int_num);
+}
+
+void TestItem::serialize(DataFile &file){
+    file.write(name);
+    file.write(&int_num);
+    file.write(&double_num);
+    file.write(int_arr);
+}
+
+void TestItem::deserialize(DataFile &file) {
+    file.read(&name);
+    file.read(&int_num);
+    file.read(&double_num);
+    file.read<int, 10>(int_arr);
 }
 
 // Prints out a hex dump to the console from the provided DataFile
@@ -89,19 +104,19 @@ void TestItem::hexDump(DataFile &file) {
 }
 
 void TestItem::buildArr(int num) {
-    arr[0] = num;
-    arr[1] = num;
+    int_arr[0] = num;
+    int_arr[1] = num;
     for (int i = 2; i < 10; ++i) {
-        arr[i] = arr[i-1] + arr[i-2];
+        int_arr[i] = int_arr[i-1] + int_arr[i-2];
     }
 }
 
 
 std::string TestItem::toString() {
-    std::string array_string = "[" + std::to_string(arr[0]);
+    std::string array_string = "[" + std::to_string(int_arr[0]);
 
     for (int i = 1; i < 10; ++i) {
-        array_string += ", " + std::to_string(arr[i]);
+        array_string += ", " + std::to_string(int_arr[i]);
     }
     array_string += "]";
 

@@ -11,7 +11,7 @@ struct TestItem {
     std::string     name;
     int             int_num;
     double          double_num;
-    int             arr[10];
+    int             int_arr[10];
 
     TestItem();
     TestItem(std::string new_name, int new_int, double new_double);
@@ -22,6 +22,7 @@ struct TestItem {
 
     void            buildArr(int num);
     std::string     toString();
+
 };
 
 
