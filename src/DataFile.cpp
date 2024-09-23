@@ -13,6 +13,7 @@ const std::string DataFile::default_file_extension_ = ".dat";
 // sets a blank filename and creates a unique_ptr to an fstream
 DataFile::DataFile():
     file_name_(""),
+    file_extension_(default_file_extension_),
     data_file_(std::make_unique<std::fstream>()) { };
 
 DataFile::DataFile(std::string file_name):
@@ -89,15 +90,28 @@ long long DataFile::getWritePos() const {
 /***** SETTERS/MUTATORS *****/
 
 void DataFile::setFileName(std::string file_name) {
-    int len = file_name.length();
-    if (len > 4 && file_name.substr(len - 4) == file_extension_)
-        file_name_ = file_name; 
-    else
+    if (isOpen()) {
+        throw std::runtime_error("File is already open. Cannot change file name at this time.");
+    }
+    size_t idx = file_name.find_last_of('.');
+    if (idx == std::string::npos) {
+        if (file_extension_.empty()) {
+            setFileExtension(default_file_extension_);
+        }
         file_name_ = file_name + file_extension_;
+    } else if (file_name.substr(idx) != file_extension_) {
+        file_extension_ = file_name.substr(idx);
+        file_name_ = file_name;
+    } else {
+        file_name_ = file_name;
+    }
 }
 
 void DataFile::setFileExtension(std::string extension) {
-    file_extension_ = "." + extension;
+    if (extension[0] != '.') {
+        file_extension_ = "." + extension;
+    }
+    file_extension_ = extension;
 }
 
 void DataFile::setReadPos(long long pos) {

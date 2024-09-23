@@ -1,6 +1,6 @@
 
 x create specialized readArray and writeArray functions
-- work on file extension functions
+x work on file extension functions
 - add comments
 - make some unit tests
     - check specific bytes in DataFile
