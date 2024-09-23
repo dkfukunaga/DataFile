@@ -1,4 +1,4 @@
 
-- create specialized readArray and writeArray functions
+x create specialized readArray and writeArray functions
 - add comments
-- start testing
+x start testing
