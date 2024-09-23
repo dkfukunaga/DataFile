@@ -7,47 +7,74 @@
 TestItem::TestItem():
     name("TESTNAME"),
     int_num(42),
-    double_num(420.69) {
+    long_num(-1),
+    double_num(420.69),
+    float_num(69.69) {
     buildArr(1);
 };
 
-TestItem::TestItem(std::string new_name, int new_int, double new_double):
+TestItem::TestItem(std::string new_name):
+    name(new_name),
+    int_num(42),
+    long_num(-1),
+    double_num(420.69),
+    float_num(69.69) {
+    buildArr(1);
+};
+
+TestItem::TestItem(std::string new_name, int new_int, long long new_long, double new_double, float new_float):
     name(new_name),
     int_num(new_int),
-    double_num(new_double) {
+    long_num(new_long),
+    double_num(new_double),
+    float_num(new_float) {
     buildArr(int_num);
 }
 
 void TestItem::serialize(DataFile &file){
     file.write(name);
     file.write(&int_num);
+    file.write(&long_num);
     file.write(&double_num);
-    file.write(int_arr);
+    file.write(&float_num);
+    file.writeArray(int_arr, 10);
+}
+
+void TestItem::serialize(DataFile &file, long long pos) {
+    file.setWritePos(pos);
+    serialize(file);
 }
 
 void TestItem::deserialize(DataFile &file) {
-    file.read(&name);
+    file.read(name);
     file.read(&int_num);
+    file.read(&long_num);
     file.read(&double_num);
-    file.read<int, 10>(int_arr);
+    file.read(&float_num);
+    file.readArray(int_arr, 10);
+}
+
+void TestItem::deserialize(DataFile &file, long long pos) {
+    file.setReadPos(pos);
+    deserialize(file);
 }
 
 // Prints out a hex dump to the console from the provided DataFile
-// with the following format:
-// 00000000  00 a2 00 01 03 00 00 00  00 73 77 72 63 6f 6d 6d  |.........swrcomm|
-// 00000010  61 6e 64 6f 00 73 77 72  63 6f 6d 6d 61 6e 64 6f  |ando.swrcommando|
-// address in hex, 8 bytes in hex, 8 bytes in hex, preceding 16 bytes in ascii
-//
+// 
 // Reads entire file at once; may not be suitable for large file sizes.
 void TestItem::hexDump(DataFile &file) {
     long long size = file.getFileSize();    // get file size to initialize buffer
 
-    // initialize buffer and read the entire file as unsigned bytes
-    std::vector<uint8_t> buffer(size);
-    file.read(buffer.data());
+    // initialize buffer and read the entire file in bytes
+    std::vector<unsigned char> buff(size);
+    file.readArray(buff.data(), size);
 
-    long long address = 0;                  // counter for first byte of current line
-    long long lines = (size / 16) + 1;      // number of lines of 16 bytes + 1 for any extra
+    long long address = 0;                      // counter for first byte of current line
+    long long lines = ((size - 1) / 16) + 1;    // number of lines of 16 bytes + 1 for any extra
+
+    // print hex dump header
+    printf(" Address   0  1  2  3  4  5  6  7   8  9  A  B  C  D  E  F\n");
+    printf("==========================================================\n");
 
     // print the hex dump
     for (int line = 0; line < lines; ++line) {
@@ -58,7 +85,7 @@ void TestItem::hexDump(DataFile &file) {
         // hex with a leading 0, or leave a blank space if that bye doens't exist
         for (int i = 0; i < 8; ++i) {
             if (address + i < size) {
-                printf(" %02X", buffer[address + i]);
+                printf(" %02X", buff[address + i]);
             } else {
                 printf("   ");
             }
@@ -69,9 +96,9 @@ void TestItem::hexDump(DataFile &file) {
 
         // loop through the next 8 bytes (if they exist) and print the bytes in
         // hex with a leading 0, or leave a blank space if that bye doens't exist
-        for (int i = 0; i < 8; ++i) {
+        for (int i = 8; i < 16; ++i) {
             if (address + i < size) {
-                printf(" %02X", buffer[address + i]);
+                printf(" %02X", buff[address + i]);
             } else {
                 printf("   ");
             }
@@ -85,8 +112,8 @@ void TestItem::hexDump(DataFile &file) {
         // space if the byte doesn't exist
         for (int i = 0; i < 16; ++i) {
             if (address + i < size){
-                if (buffer[address + i] >= 32 && buffer[address + i] <= 126) {
-                    printf("%c", buffer[address + i]);
+                if (buff[address + i] >= 32 && buff[address + i] <= 126) {
+                    printf("%c", buff[address + i]);
                 } else {
                     printf(".");
                 }
@@ -101,6 +128,15 @@ void TestItem::hexDump(DataFile &file) {
         // increment address by one line
         address += 16;
     }
+
+    // print hex dump footer
+    printf("==========================================================\n");
+    printf("   Size:  %d\n\n", size);
+}
+
+int TestItem::getSize() {
+    return name.length() + 2 + sizeof(int_num) + sizeof(long_num) +
+           sizeof(double_num) + sizeof(float_num) + sizeof(int_arr);
 }
 
 void TestItem::buildArr(int num) {
@@ -120,8 +156,10 @@ std::string TestItem::toString() {
     }
     array_string += "]";
 
-    return std::string("Name:    " + name + "\n" +
-                       "Integer: " + std::to_string(int_num) + "\n" +
-                       "Double:  " + std::to_string(double_num) + "\n" +
-                       "Array:   " + array_string + "\n");
+    return std::string("Name:      \"" + name + "\"\n" +
+                       "Integer:   " + std::to_string(int_num) + "\n" +
+                       "Long Long: " + std::to_string(long_num) + "\n" +
+                       "Double:    " + std::to_string(double_num) + "\n" +
+                       "Float:     " + std::to_string(float_num) + "\n" +
+                       "Array:     " + array_string + "\n");
 }
