@@ -24,10 +24,14 @@ public:
     std::string                     getFileName() const;
     std::string                     getFileExtension() const;
     long long                       getFileSize() const;
+    long long                       getReadPos() const;
+    long long                       getWritePos() const;
 
     // setters/mutators
     void                            setFileName(std::string file_name);
     void                            setFileExtension(std::string extension);
+    void                            setReadPos(long long pos);
+    void                            setWritePos(long long pos);
 
     // fstream status
     bool                            isOpen() const;
@@ -37,27 +41,21 @@ public:
     bool                            bad() const;
     void                            clear();
 
-    // helper functions
-    void                            moveReadPointer(long long pos);
-    void                            moveWritePointer(long long pos);
+    // read functions
+    template<typename T> void       read(T *data);
+    template<typename T> void       read(T *data, long long pos);
+    template<typename T> void       readArray(T *data, long long len);
+    template<typename T> void       readArray(T *data, long long len, long long pos);
+    void                            read(std::string &str);
+    void                            read(std::string &str, long long pos);
 
-    // read/write functions
-    void                            read(std::string *str);
-    void                            read(std::string *str, long long pos);
+    // write functions
+    template<typename T> void       write(const T *data);
+    template<typename T> void       write(const T *data, long long pos);
+    template<typename T> void       writeArray(const T *data, long long len);
+    template<typename T> void       writeArray(const T *data, long long len, long long pos);
     void                            write(const std::string &str);
     void                            write(const std::string &str, long long pos);
-
-    // templated read functions
-    template<typename T>            void read(T *data);
-    template<typename T>            void read(T *data, long long pos);
-    template<typename T, size_t N>  void read(const T (&arr)[N]);
-    template<typename T, size_t N>  void read(const T (&arr)[N], long long pos);
-
-    // templated write functions
-    template<typename T>            void write(const T *data);
-    template<typename T>            void write(const T *data, long long pos);
-    template<typename T, size_t N>  void write(const T (&arr)[N]);
-    template<typename T, size_t N>  void write(const T (&arr)[N], long long pos);
 
 private:
     // member variables
@@ -93,40 +91,32 @@ void DataFile::read(T *data, long long pos) {
         throw std::runtime_error("File is not open or could not be opened.");
     
     // move read pointer and read from file
-    moveReadPointer(pos);
+    setReadPos(pos);
     read(data);
 }
 
-
-template<typename T, size_t N>
-void DataFile::read(const T (&arr)[N]) {
+template<typename T>
+void DataFile::readArray(T *data, long long len) {
     // check if file is open
     if (!isOpen())
         throw std::runtime_error("File is not open or could not be opened.");
 
-    // check if at eof
-    std::streamoff current_pos = data_file_->tellg();
-    if (current_pos + static_cast<std::streamoff>(N * sizeof(T)) > getFileSize())
+    // check if read will go out of bounds
+    std::streampos current_pos = data_file_->tellg();
+    if (current_pos + static_cast<std::streamoff>(sizeof(T)) > getFileSize())
         throw std::out_of_range("End of file reached.");
     
-    // read from file
-    data_file_->read(reinterpret_cast<char*>(arr), N * sizeof(T));
+    // read from file    
+    data_file_->read(reinterpret_cast<char*>(data), len * sizeof(T));
 }
 
-template<typename T, size_t N>
-void DataFile::read(const T (&arr)[N], long long pos) {
-    // check if file is open
-    if (!isOpen())
-        throw std::runtime_error("File is not open or could not be opened.");
-
-    // check if at eof
-    if (pos + (sizeof(T) * N) > getFileSize())
-        throw std::out_of_range("End of file reached.");
-    
-    // move read pointer and read from file
-    moveReadPointer(pos);
-    data_file_->read(reinterpret_cast<char*>(arr), N * sizeof(T));
+template<typename T>
+void DataFile::readArray(T *data, long long len, long long pos) {
+    setReadPos(pos);
+    readArray(data, len);
 }
+
+
 
 /***** TEMPLATED WRITE FUNCTIONS *****/
 
@@ -144,27 +134,20 @@ void DataFile::write(const T *data) {
 template<typename T>
 void DataFile::write(const T *data, long long pos) {
     // move write pointer and write to file
-    moveWritePointer(pos);
+    setWritePos(pos);
     write(data);
 }
 
-
-template<typename T, size_t N>
-void DataFile::write(const T (&arr)[N]) {
-    // write to file
-    data_file_->write(reinterpret_cast<const char*>(arr), N * sizeof(T));
-
-    // Check for write errors
-    if (data_file_->fail()) {
-        throw std::ios_base::failure("Error occurred while writing to file.");
-    }
+template<typename T>
+void DataFile::writeArray(const T *data, long long len) {
+    // write(data, len * sizeof(T));
+    data_file_->write(reinterpret_cast<const char*>(data), len * sizeof(T));
 }
 
-template<typename T, size_t N>
-void DataFile::write(const T (&arr)[N], long long pos) {
-    // move write pointer and write to file
-    moveWritePointer(pos);
-    write(arr);
+template<typename T>
+void DataFile::writeArray(const T *data, long long len, long long pos) {
+    setWritePos(pos);
+    writeArray(data, len);
 }
 
 

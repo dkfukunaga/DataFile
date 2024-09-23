@@ -78,6 +78,14 @@ long long DataFile::getFileSize() const {
     return static_cast<long long>(file_size);
 }
 
+long long DataFile::getReadPos() const {
+    return static_cast<long long>(data_file_->tellg());
+}
+
+long long DataFile::getWritePos() const {
+    return static_cast<long long>(data_file_->tellp());
+}
+
 /***** SETTERS/MUTATORS *****/
 
 void DataFile::setFileName(std::string file_name) {
@@ -92,23 +100,7 @@ void DataFile::setFileExtension(std::string extension) {
     file_extension_ = "." + extension;
 }
 
-/***** FILE STATUS/FLAGS *****/
-
-bool DataFile::isOpen() const { return data_file_->is_open(); }
-
-bool DataFile::eof() const { return data_file_->eof(); }
-
-bool DataFile::good() const { return data_file_->good(); }
-
-bool DataFile::fail() const { return data_file_->fail(); }
-
-bool DataFile::bad() const { return data_file_->bad(); }
-
-void DataFile::clear() { data_file_->clear(); }
-
-/***** HELPER FUNCTIONS *****/
-
-void DataFile::moveReadPointer(long long pos) {
+void DataFile::setReadPos(long long pos) {
     // check if file is open
     if (!isOpen())
         throw std::runtime_error("File is not open or could not be opened.");
@@ -122,7 +114,7 @@ void DataFile::moveReadPointer(long long pos) {
     data_file_->seekg(pos, (pos < 0 ? std::ios::end : std::ios::beg));
 }
 
-void DataFile::moveWritePointer(long long pos) {
+void DataFile::setWritePos(long long pos) {
     // check if file is open
     if (!isOpen())
         throw std::runtime_error("File is not open or could not be opened.");
@@ -136,9 +128,23 @@ void DataFile::moveWritePointer(long long pos) {
     data_file_->seekp(pos, (pos < 0 ? std::ios::end : std::ios::beg));
 }
 
+
+/***** FILE STATUS/FLAGS *****/
+
+bool DataFile::isOpen() const { return data_file_->is_open(); }
+
+bool DataFile::eof() const { return data_file_->eof(); }
+
+bool DataFile::good() const { return data_file_->good(); }
+
+bool DataFile::fail() const { return data_file_->fail(); }
+
+bool DataFile::bad() const { return data_file_->bad(); }
+
+void DataFile::clear() { data_file_->clear(); }
 /***** READ FUNCTIONS *****/
 
-void DataFile::read(std::string *str) {
+void DataFile::read(std::string &str) {
     // check if file is open
     if (!isOpen())
         throw std::runtime_error("File is not open or could not be opened.");
@@ -146,22 +152,22 @@ void DataFile::read(std::string *str) {
     if (eof())
         throw std::out_of_range("End of file reached.");
     unsigned short len;
-    read(&len, 2);
+    read(&len);
 
     std::vector<char> buffer(len + 1);  // Use vector for safe memory allocation
-    data_file_->read(buffer.data(), len);
+    readArray(buffer.data(), len);
 
-    if (data_file_->gcount() != len)
-        throw std::ios_base::failure("Failed to read the complete string data.");
+    // if (data_file_->gcount() != len)
+    //     throw std::ios_base::failure("Failed to read the complete string data.");
     
     buffer[len] = '\0';  // Null-terminate
         
-    *str = std::string(buffer.data());
+    str = std::string(buffer.data());
 }
 
-void DataFile::read(std::string *str, long long pos) {
-    // moveReadPointer will verify file is open and pos is valid
-    moveReadPointer(pos);
+void DataFile::read(std::string &str, long long pos) {
+    // setReadPos will verify file is open and pos is valid
+    setReadPos(pos);
     read(str);
 }
 
@@ -175,14 +181,14 @@ void DataFile::write(const std::string &str) {
 
     // write string length
     unsigned short len = static_cast<unsigned short>(str_len);
-    write(&len, 2);
+    write(&len);
     
     // Check for write errors after writing length
     if (data_file_->fail())
         throw std::ios_base::failure("Error occurred while writing to file.");
     
     // write string without null terminator
-    write(str.c_str(), len);
+    data_file_->write(str.c_str(), len);
 
     // Check for write errors after writing string
     if (data_file_->fail())
@@ -190,8 +196,8 @@ void DataFile::write(const std::string &str) {
 }
 
 void DataFile::write(const std::string &str, long long pos) {
-    // moveWritePointer will verify file is open and pos is valid
-    moveWritePointer(pos);
+    // setWritePos will verify file is open and pos is valid
+    setWritePos(pos);
     write(str);
 }
 
