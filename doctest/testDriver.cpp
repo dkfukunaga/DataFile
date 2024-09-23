@@ -28,7 +28,7 @@ int main() {
 
     // DataFile file("test.dat");
     DataFile file;
-    file.setFileExtension(".dt2");
+    // file.setFileExtension(".dat2");
     file.setFileName("test");
     file.open();
 
