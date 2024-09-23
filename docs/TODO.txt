@@ -1,4 +1,11 @@
 
 x create specialized readArray and writeArray functions
+- work on file extension functions
 - add comments
+- make some unit tests
+    - check specific bytes in DataFile
+    - check data fields in items read from DataFile
+    - make sure to check all permutations of read/write functions
+    - test for exceptions?
+    - verify open/close working as intended
 x start testing
