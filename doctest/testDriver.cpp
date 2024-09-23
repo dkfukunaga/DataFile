@@ -26,7 +26,11 @@ int main() {
     std::cout << "Total size : " << item_to_write_1.getSize() + item_to_write_2.getSize()
               + item_to_write_3.getSize() << "\n\n";
 
-    DataFile file("test.dat");
+    // DataFile file("test.dat");
+    DataFile file;
+    file.setFileExtension(".dt2");
+    file.setFileName("test");
+    file.open();
 
     item_to_write_1.serialize(file);
     item_to_write_2.serialize(file);
