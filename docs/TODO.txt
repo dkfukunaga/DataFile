@@ -2,6 +2,7 @@
 x create specialized readArray and writeArray functions
 x work on file extension functions
 x move hexDump to DataFile
+x add hexDump(start, size)
 - add openReadOnly
     - add read_only flag and getter
     - implement read only checks for write functions
