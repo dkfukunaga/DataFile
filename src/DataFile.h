@@ -18,12 +18,15 @@ public:
     // open/close functions
     void                            open();
     void                            open(std::string file_name);
+    void                            openReadOnly();
+    void                            openReadOnly(std::string file_name);
     void                            close();
 
     // getters/accessors
     std::string                     getFileName() const;
     std::string                     getFileExtension() const;
     long long                       getFileSize() const;
+    bool                            isReadOnly() const;
     long long                       getReadPos() const;
     long long                       getWritePos() const;
 
@@ -57,11 +60,15 @@ public:
     void                            write(const std::string &str);
     void                            write(const std::string &str, long long pos);
 
+    // utility functions
+    void                            hexDump();
+
 private:
     // member variables
     std::unique_ptr<std::fstream>   data_file_;
     std::string                     file_name_;
     std::string                     file_extension_;
+    bool                            read_only_;
 
     // static constants
     static const std::string        default_file_extension_;

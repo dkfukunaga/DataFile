@@ -24,7 +24,6 @@ struct TestItem {
     void            serialize(DataFile &file);
     void            deserialize(DataFile &file);
     void            deserialize(DataFile &file, long long pos);
-    void            hexDump(DataFile &file);
 
     int             getSize();
     void            buildArr(int num);
