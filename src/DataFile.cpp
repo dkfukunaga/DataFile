@@ -215,25 +215,28 @@ void DataFile::write(const std::string &str, long long pos) {
     write(str);
 }
 
-// Prints out a hex dump to the console from data_file_
+// Prints out a hex dump to the console from data_file_ from start to end
 // 
-// Reads entire file at once; may not be suitable for large file sizes.
-void DataFile::hexDump() {
+// Reads entire range at once; may not be suitable for large file sizes.
+void DataFile::hexDump(long long start, long long size) {
     // check if file is open
     if (!isOpen())
         throw std::runtime_error("File is not open.");
     
-    long long size = getFileSize();    // get file size to initialize buffer
+    // long long size = end - start;           // number of bytes to display
+    long long end = start + size;
 
-    // initialize buffer and read the entire file in bytes
+    // initialize buffer and read the range in bytes
+    setReadPos(start);
     std::vector<unsigned char> buff(size);
     readArray(buff.data(), size);
 
-    long long address = 0;                      // counter for first byte of current line
+    long long address = start;              // starting address
+    long long index = 0;
     long long lines = ((size - 1) / 16) + 1;    // number of lines of 16 bytes + 1 for any extra
 
     // print hex dump header
-    printf(" Address:    0  1  2  3  4  5  6  7   8  9  A  B  C  D  E  F\n");
+    // printf(" Address:    0  1  2  3  4  5  6  7   8  9  A  B  C  D  E  F\n");
     printf("================================================================================\n");
 
     // print the hex dump
@@ -244,8 +247,8 @@ void DataFile::hexDump() {
         // loop through the next 8 bytes (if they exist) and print the bytes in
         // hex with a leading 0, or leave a blank space if that bye doens't exist
         for (int i = 0; i < 8; ++i) {
-            if (address + i < size) {
-                printf(" %02X", buff[address + i]);
+            if (address + i < end) {
+                printf(" %02X", buff[index + i]);
             } else {
                 printf("   ");
             }
@@ -257,8 +260,8 @@ void DataFile::hexDump() {
         // loop through the next 8 bytes (if they exist) and print the bytes in
         // hex with a leading 0, or leave a blank space if that bye doens't exist
         for (int i = 8; i < 16; ++i) {
-            if (address + i < size) {
-                printf(" %02X", buff[address + i]);
+            if (address + i < end) {
+                printf(" %02X", buff[index + i]);
             } else {
                 printf("   ");
             }
@@ -271,9 +274,9 @@ void DataFile::hexDump() {
         // ascii character if it is printable, '.' if it is unprintable, or an empty
         // space if the byte doesn't exist
         for (int i = 0; i < 16; ++i) {
-            if (address + i < size){
-                if (buff[address + i] >= 32 && buff[address + i] <= 126) {
-                    printf("%c", buff[address + i]);
+            if (address + i < end){
+                if (buff[index + i] >= 32 && buff[index + i] <= 126) {
+                    printf("%c", buff[index + i]);
                 } else {
                     printf(".");
                 }
@@ -287,6 +290,7 @@ void DataFile::hexDump() {
 
         // increment address by one line
         address += 16;
+        index += 16;
     }
 
     // print hex dump footer
@@ -294,4 +298,10 @@ void DataFile::hexDump() {
     printf("  Size: %d bytes\n\n", size);
 }
 
+// Prints out a hex dump to the console from data_file_ of whole file
+// 
+// Reads entire file at once; may not be suitable for large file sizes.
+void DataFile::hexDump() {
+    hexDump(0, getFileSize());
+}
 

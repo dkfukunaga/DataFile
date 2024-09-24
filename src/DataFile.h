@@ -62,6 +62,7 @@ public:
 
     // utility functions
     void                            hexDump();
+    void                            hexDump(long long start, long long size);
 
 private:
     // member variables

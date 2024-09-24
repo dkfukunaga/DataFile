@@ -25,6 +25,10 @@ int main() {
     std::cout << "Item 3 size: " << item_to_write_3.getSize() << "\n";
     std::cout << "Total size : " << item_to_write_1.getSize() + item_to_write_2.getSize()
               + item_to_write_3.getSize() << "\n\n";
+    
+    long long item_1_offset = 0;
+    long long item_2_offset = item_to_write_1.getSize();
+    long long item_3_offset = item_2_offset + item_to_write_2.getSize();
 
     // DataFile file("test.dat");
     DataFile file;
@@ -37,6 +41,9 @@ int main() {
     item_to_write_3.serialize(file);
     file.setReadPos(0);
     file.hexDump();
+    file.hexDump(0, item_to_write_1.getSize());
+    file.hexDump(item_2_offset, item_to_write_2.getSize());
+    file.hexDump(item_3_offset, item_to_write_3.getSize());
 
     std::cout << "\n";
     TestItem item_to_read_1;
