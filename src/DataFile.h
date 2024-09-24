@@ -61,8 +61,8 @@ public:
     void                            write(const std::string &str, long long pos);
 
     // utility functions
-    void                            hexDump();
     void                            hexDump(long long start, long long size);
+    void                            hexDump();
 
 private:
     // member variables

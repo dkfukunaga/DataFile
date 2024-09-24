@@ -165,7 +165,7 @@ void DataFile::read(std::string &str) {
     // check if at eof
     if (eof())
         throw std::out_of_range("End of file reached.");
-    unsigned short len;
+    uint16_t len;
     read(&len);
 
     std::vector<char> buffer(len + 1);  // Use vector for safe memory allocation
@@ -194,7 +194,7 @@ void DataFile::write(const std::string &str) {
         throw std::length_error("String length exceeds maximum limit.");
 
     // write string length
-    unsigned short len = static_cast<unsigned short>(str_len);
+    uint16_t len = static_cast<uint16_t>(str_len);
     write(&len);
     
     // Check for write errors after writing length
@@ -227,9 +227,9 @@ void DataFile::hexDump(long long start, long long size) {
     long long end = start + size;
 
     // initialize buffer and read the range in bytes
-    setReadPos(start);
+    // setReadPos(start);
     std::vector<unsigned char> buff(size);
-    readArray(buff.data(), size);
+    readArray(buff.data(), size, start);
 
     long long address = start;              // starting address
     long long index = 0;
