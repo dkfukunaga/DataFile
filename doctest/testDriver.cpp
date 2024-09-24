@@ -36,7 +36,7 @@ int main() {
     item_to_write_2.serialize(file);
     item_to_write_3.serialize(file);
     file.setReadPos(0);
-    item_to_write_1.hexDump(file);
+    file.hexDump();
 
     std::cout << "\n";
     TestItem item_to_read_1;
