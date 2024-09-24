@@ -6,19 +6,21 @@
 #include "..\src\DataFile.h"
 #include <string>
 #include <vector>
+#include <sstream>
+#include <iomanip>
 
 struct TestItem {
-    const static int arr_len = 17;
-    std::string     name;
-    int             int_num;
-    long long       long_num;
-    double          double_num;
-    float           float_num;
-    int             int_arr[arr_len] = {0};
+    const static int foot_len = 6;
+
+    unsigned int    test_id = 0xFECAA70C;
+    std::string     test_str;
+    long long       test_long;
+    float           test_float;
+    short           test_foot[foot_len] = {1, 16, 256, 4096, -1, 15001};
+
 
     TestItem();
-    TestItem(std::string new_name);
-    TestItem(std::string new_name, int new_int, long long new_long, double new_double, float new_float);
+    TestItem(std::string new_str, long long new_long, float new_float);
 
     void            serialize(DataFile &file, long long pos);
     void            serialize(DataFile &file);
@@ -26,7 +28,6 @@ struct TestItem {
     void            deserialize(DataFile &file, long long pos);
 
     int             getSize();
-    void            buildArr(int num);
     std::string     toString();
 
 };

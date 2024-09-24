@@ -4,65 +4,51 @@
 #include <iostream>
 
 int main() {
-    TestItem item_to_write_1("omg, it works! Amazing!!!!");
-    TestItem item_to_write_2("Let's try with two items and see what happens.");
-    item_to_write_2.int_num = 42069;
-    item_to_write_2.double_num = 123.456789;
-    item_to_write_2.float_num = 2.2222221;
-    item_to_write_2.buildArr(3);
-    TestItem item_to_write_3("THREE ITEMS NOW?");
-    item_to_write_3.int_num = 333333;
-    item_to_write_3.long_num = -333333;
-    item_to_write_3.double_num = 0.0007;
-    item_to_write_3.float_num = 0.01;
-    item_to_write_3.buildArr(117);
+    std::string str_1 = "Hello world!";
+    std::string str_2 = "This is the song that doesn't end, yes it goes on and on my friend! Some people started singing it not knowing what it was, and they'll continue singing it forever just because...";
 
-    std::cout << "Item to write 1: \n" << item_to_write_1.toString() << "\n\n";
-    std::cout << "Item to write 2: \n" << item_to_write_2.toString() << "\n\n";
-    std::cout << "Item to write 3: \n" << item_to_write_3.toString() << "\n\n";
-    std::cout << "Item 1 size: " << item_to_write_1.getSize() << "\n";
-    std::cout << "Item 2 size: " << item_to_write_2.getSize() << "\n";
-    std::cout << "Item 3 size: " << item_to_write_3.getSize() << "\n";
-    std::cout << "Total size : " << item_to_write_1.getSize() + item_to_write_2.getSize()
-              + item_to_write_3.getSize() << "\n\n";
+    TestItem write_test_1(str_1, 0xEFCDAB8967452301, 420.69);
+    TestItem write_test_2(str_2, 0x1032547698BADCFE, 69.420);
+    short foot_2[6] = {1, 17, 273, 4369, -1, 15001};
+    std::copy(std::begin(foot_2), std::end(foot_2), std::begin(write_test_2.test_foot));
+
+    std::cout << "Test 1: \n" << write_test_1.toString() << "\n\n";
+    std::cout << "Test 2: \n" << write_test_2.toString() << "\n\n";
+
+    std::cout << "Test 1 size: " << write_test_1.getSize() << "\n";
+    std::cout << "Test 2 size: " << write_test_2.getSize() << "\n";
+    std::cout << "Total size:  " << write_test_1.getSize() + write_test_2.getSize()
+              << "\n\n";
     
-    long long item_1_offset = 0;
-    long long item_2_offset = item_to_write_1.getSize();
-    long long item_3_offset = item_2_offset + item_to_write_2.getSize();
-
     // DataFile file("test.dat");
     DataFile file;
-    // file.setFileExtension(".dat2");
+    file.setFileExtension(".dat");
     file.setFileName("test");
     file.open();
 
-    item_to_write_1.serialize(file);
-    item_to_write_2.serialize(file);
-    item_to_write_3.serialize(file);
+    file.setWritePos(0);
+    write_test_1.serialize(file);
+    write_test_2.serialize(file, write_test_1.getSize());
     file.setReadPos(0);
     file.hexDump();
-    file.hexDump(0, item_to_write_1.getSize());
-    file.hexDump(item_2_offset, item_to_write_2.getSize());
-    file.hexDump(item_3_offset, item_to_write_3.getSize());
+    file.hexDump(0, write_test_1.getSize());
+    file.hexDump(write_test_1.getSize(), write_test_2.getSize());
 
     std::cout << "\n";
-    TestItem item_to_read_1;
-    TestItem item_to_read_2;
-    TestItem item_to_read_3;
-    TestItem item_to_read_4;
-    TestItem item_to_read_5;
+    TestItem read_test_1;
+    TestItem read_test_2;
+    TestItem read_test_3;
+    TestItem read_test_4;
     file.setReadPos(0);
-    item_to_read_1.deserialize(file);
-    item_to_read_2.deserialize(file);
-    item_to_read_3.deserialize(file);
-    item_to_read_4.deserialize(file, item_to_write_1.getSize());
-    item_to_read_5.deserialize(file, item_to_write_1.getSize() + item_to_write_2.getSize());
+    read_test_1.deserialize(file);
+    read_test_2.deserialize(file);
+    read_test_3.deserialize(file, write_test_1.getSize());
+    read_test_4.deserialize(file, 0);
 
-    std::cout << "Item read 1:\n" << item_to_read_1.toString() << std::endl;
-    std::cout << "Item read 2:\n" << item_to_read_2.toString() << std::endl;
-    std::cout << "Item read 3:\n" << item_to_read_3.toString() << std::endl;
-    std::cout << "Item read 4:\n" << item_to_read_4.toString() << std::endl;
-    std::cout << "Item read 5:\n" << item_to_read_5.toString() << std::endl;
+    std::cout << "Test 1: \n" << read_test_1.toString() << "\n\n";
+    std::cout << "Test 1: \n" << read_test_2.toString() << "\n\n";
+    std::cout << "Test 1: \n" << read_test_3.toString() << "\n\n";
+    std::cout << "Test 4: \n" << read_test_4.toString() << "\n\n";
 
     file.close();
 
