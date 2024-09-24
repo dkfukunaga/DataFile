@@ -8,12 +8,13 @@
 #include <vector>
 
 struct TestItem {
+    const static int arr_len = 17;
     std::string     name;
     int             int_num;
     long long       long_num;
     double          double_num;
     float           float_num;
-    int             int_arr[10] = {0};
+    int             int_arr[arr_len] = {0};
 
     TestItem();
     TestItem(std::string new_name);

@@ -37,7 +37,7 @@ void TestItem::serialize(DataFile &file){
     file.write(&long_num);
     file.write(&double_num);
     file.write(&float_num);
-    file.writeArray(int_arr, 10);
+    file.writeArray(int_arr, arr_len);
 }
 
 void TestItem::serialize(DataFile &file, long long pos) {
@@ -51,7 +51,7 @@ void TestItem::deserialize(DataFile &file) {
     file.read(&long_num);
     file.read(&double_num);
     file.read(&float_num);
-    file.readArray(int_arr, 10);
+    file.readArray(int_arr, arr_len);
 }
 
 void TestItem::deserialize(DataFile &file, long long pos) {
@@ -73,13 +73,13 @@ void TestItem::hexDump(DataFile &file) {
     long long lines = ((size - 1) / 16) + 1;    // number of lines of 16 bytes + 1 for any extra
 
     // print hex dump header
-    printf(" Address   0  1  2  3  4  5  6  7   8  9  A  B  C  D  E  F\n");
-    printf("==========================================================\n");
+    printf(" Address:    0  1  2  3  4  5  6  7   8  9  A  B  C  D  E  F\n");
+    printf("================================================================================\n");
 
     // print the hex dump
     for (int line = 0; line < lines; ++line) {
         // print memory address in hex in an 8 wide column with leading 0's
-        printf("%08X ", address);
+        printf("|%08X| ", address);
         
         // loop through the next 8 bytes (if they exist) and print the bytes in
         // hex with a leading 0, or leave a blank space if that bye doens't exist
@@ -130,8 +130,8 @@ void TestItem::hexDump(DataFile &file) {
     }
 
     // print hex dump footer
-    printf("==========================================================\n");
-    printf("   Size:  %d\n\n", size);
+    printf("================================================================================\n");
+    printf("  Size: %d bytes\n\n", size);
 }
 
 int TestItem::getSize() {
@@ -142,7 +142,7 @@ int TestItem::getSize() {
 void TestItem::buildArr(int num) {
     int_arr[0] = num;
     int_arr[1] = num;
-    for (int i = 2; i < 10; ++i) {
+    for (int i = 2; i < arr_len; ++i) {
         int_arr[i] = int_arr[i-1] + int_arr[i-2];
     }
 }
@@ -151,7 +151,7 @@ void TestItem::buildArr(int num) {
 std::string TestItem::toString() {
     std::string array_string = "[" + std::to_string(int_arr[0]);
 
-    for (int i = 1; i < 10; ++i) {
+    for (int i = 1; i < arr_len; ++i) {
         array_string += ", " + std::to_string(int_arr[i]);
     }
     array_string += "]";
