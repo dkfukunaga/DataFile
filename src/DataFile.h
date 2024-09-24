@@ -103,7 +103,7 @@ void DataFile::readArray(T *data, long long len) {
 
     // check if read will go out of bounds
     std::streampos current_pos = data_file_->tellg();
-    if (current_pos + static_cast<std::streamoff>(sizeof(T)) > getFileSize())
+    if (current_pos + static_cast<std::streamoff>(len * sizeof(T)) > static_cast<std::streamoff>(getFileSize()))
         throw std::out_of_range("End of file reached.");
     
     // read from file    
