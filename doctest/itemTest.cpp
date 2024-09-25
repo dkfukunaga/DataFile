@@ -22,22 +22,40 @@ TEST_CASE("Verify DataFile functions") {
     DataFile file(file_name, FileMode::overwrite);
     file.close();
 
-    SUBCASE("verify getters and setters") {
+    SUBCASE("verify FileModes") {
+        std::ios::openmode file_mode = std::ios::binary | std::ios::in | std::ios::out;
         file.open(FileMode::edit);
-        auto file_mode = std::ios::binary | std::ios::in | std::ios::out;
+        CHECK(file.getOpenMode() == file_mode);
+        file.close();
+
+        file_mode = std::ios::binary | std::ios::in;
+        file.open(FileMode::readonly);
+        CHECK(file.getOpenMode() == file_mode);
+        file.close();
+
+        file_mode = std::ios::binary | std::ios::out;
+        file.open(FileMode::overwrite);
+        CHECK(file.getOpenMode() == file_mode);
+        file.close();
+    }
+
+    SUBCASE("verify getters and setters") {
+        file.open(FileMode::readonly);
+        file.hexDump();
 
         CHECK(file.isOpen());
         CHECK(file.getFileName() == file_name + ".dat");
         CHECK(file.getFileExtension() == "dat");
         CHECK(file.getFileSize() == 0);
-        CHECK(file.getOpenMode() == file_mode);
 
         file.close();
+
+        CHECK_FALSE(file.isOpen());
 
         file.setFileName(".\\doctest\\data\\test_file.dat");
         file.setFileExtension("dt2");
         file.open(FileMode::overwrite);
-        
+
         CHECK(file.getFileName() == ".\\doctest\\data\\test_file.dt2");
         CHECK(file.getFileExtension() == "dt2");
 
@@ -65,8 +83,6 @@ TEST_CASE("Verify DataFile functions") {
         CHECK(file.getWritePos() == test_item_1.getSize());
 
         file.close();
-
-        CHECK_FALSE(file.isOpen());
     }
 
     SUBCASE("verify file writes") {
@@ -75,7 +91,7 @@ TEST_CASE("Verify DataFile functions") {
         test_item_1.serialize(file);
 
         short num = -1;
-        file.setWritePosEnd();
+        file.setWritePosBegin();
         file.write(&num, test_item_1.getSize());
         file.hexDump();
         file.close();
