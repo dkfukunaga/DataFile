@@ -23,13 +23,15 @@ int main() {
     // DataFile file("test.dat");
     DataFile file;
     file.setFileExtension(".dat");
-    file.setFileName("test");
-    file.open();
+    file.setFileName(".\\doctest\\data\\test");
+    file.open(FileMode::overwrite);
 
-    file.setWritePos(0);
+    // file.setWritePos(0);
     write_test_1.serialize(file);
     write_test_2.serialize(file, write_test_1.getSize());
-    file.setReadPos(0);
+
+    file.close();
+    file.open(FileMode::readonly);
     file.hexDump();
     file.hexDump(0, write_test_1.getSize());
     file.hexDump(write_test_1.getSize(), write_test_2.getSize());
@@ -39,16 +41,32 @@ int main() {
     TestItem read_test_2;
     TestItem read_test_3;
     TestItem read_test_4;
+    TestItem read_test_5;
     file.setReadPos(0);
     read_test_1.deserialize(file);
     read_test_2.deserialize(file);
     read_test_3.deserialize(file, write_test_1.getSize());
     read_test_4.deserialize(file, 0);
+    // read_test_1.serialize(file);
+    // file.hexDump();
+
+    file.close();
+    file.open(FileMode::edit);
+    file.setWritePosEnd();
+    write_test_1.serialize(file);
+    file.close();
+    file.open(FileMode::readonly);
+    std::cout << "test\n";
+    file.hexDump();
+
+    file.setReadPos(read_test_1.getSize() + read_test_2.getSize());
+    read_test_5.deserialize(file);
 
     std::cout << "Test 1: \n" << read_test_1.toString() << "\n\n";
-    std::cout << "Test 1: \n" << read_test_2.toString() << "\n\n";
-    std::cout << "Test 1: \n" << read_test_3.toString() << "\n\n";
+    std::cout << "Test 2: \n" << read_test_2.toString() << "\n\n";
+    std::cout << "Test 3: \n" << read_test_3.toString() << "\n\n";
     std::cout << "Test 4: \n" << read_test_4.toString() << "\n\n";
+    std::cout << "Test 5: \n" << read_test_5.toString() << "\n\n";
 
     file.close();
 
