@@ -5,7 +5,9 @@
 
 int main() {
     std::string str_1 = "Hello world!";
-    std::string str_2 = "This is the song that doesn't end, yes it goes on and on my friend! Some people started singing it not knowing what it was, and they'll continue singing it forever just because...";
+    std::string str_2 = "This is the song that doesn't end, yes it goes on and on my "
+                        "friend! Some people started singing it not knowing what it "
+                        "was, and they'll continue singing it forever just because...";
 
     TestItem write_test_1(str_1, 0xEFCDAB8967452301, 420.69);
     TestItem write_test_2(str_2, 0x1032547698BADCFE, 69.420);
