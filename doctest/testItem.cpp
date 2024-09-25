@@ -58,7 +58,7 @@ std::string TestItem::toString() {
     std::stringstream ss;
 
     ss << std::hex << std::uppercase << std::setfill('0')
-       << "Test ID:     0x" << std::setw(4) << _byteswap_ulong(test_id) << "\n"
+       << "Test ID:     0x" << std::setw(8) << _byteswap_ulong(test_id) << "\n"
        << "Test String: \"" << test_str << "\"\n"
        << "Test Long:   0x" << std::setw(16) << _byteswap_uint64(test_long) << "\n"
        << "Test Float:  " << std::to_string(test_float) << "\n"
