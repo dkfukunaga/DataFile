@@ -8,27 +8,38 @@
 #include <string>
 #include <vector>
 
-enum class FileMode {
-    edit,
-    readonly,
-    overwrite
+// std::ios::openmode constants
+//
+// edit         = std::ios::binary | std::ios::in | std::ios::out
+// readonly     = std::ios::binary | std::ios::in
+// overwrite    = std::ios::binary | std::ios::out
+namespace FileMode {
+    // read/write - std::ios::binary | std::ios::in | std::ios::out
+    static const std::ios::openmode edit = std::ios::binary | std::ios::in | std::ios::out;
+    // read only - std::ios::binary | std::ios::in
+    static const std::ios::openmode readonly = std::ios::binary | std::ios::in;
+    // write only - std::ios::binary | std::ios::out
+    // will clear the contents of any file opened
+    // or create a new file if it doesn't already exist
+    static const std::ios::openmode overwrite = std::ios::binary | std::ios::out;
 };
 
 class DataFile {
 public:
     // constructors/destructor
     DataFile();
-    DataFile(std::string file_name, FileMode mode = FileMode::edit);
+    DataFile(std::string file_name, std::ios::openmode mode = FileMode::edit);
     ~DataFile();
 
     // open/close functions
-    void                            open(FileMode mode = FileMode::edit);
-    void                            open(std::string file_name, FileMode mode = FileMode::edit);
+    void                            open(std::ios::openmode mode = FileMode::edit);
+    void                            open(std::string file_name, std::ios::openmode mode = FileMode::edit);
     void                            close();
 
     // getters/accessors
     std::string                     getFileName() const;
     std::string                     getFileExtension() const;
+    std::string                     getFilePath() const;
     int64_t                         getFileSize() const;
     std::ios_base::openmode         getOpenMode() const;
     int64_t                         getReadPos() const;
@@ -37,6 +48,7 @@ public:
     // setters/mutators
     void                            setFileName(std::string file_name);
     void                            setFileExtension(std::string extension);
+    void                            setFilePath(std::string file_path);
     void                            setReadPos(int64_t pos);
     void                            setReadPosBegin();
     void                            setReadPosEnd();
@@ -77,7 +89,8 @@ private:
     std::unique_ptr<std::fstream>   data_file_;
     std::string                     file_name_;
     std::string                     file_extension_;
-    std::ios_base::openmode         io_mode_;
+    std::string                     file_path_;
+    std::ios_base::openmode         ios_openmode;
 
     // static constants
     static const std::string        default_file_extension_;

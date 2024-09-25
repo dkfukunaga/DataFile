@@ -16,52 +16,54 @@ DataFile::DataFile():
     file_name_(""),
     file_extension_(default_file_extension_),
     data_file_(std::make_unique<std::fstream>()),
-    io_mode_(std::ios::binary) { };
+    ios_openmode(std::ios::binary) { };
 
-DataFile::DataFile(std::string file_name, FileMode mode):
+DataFile::DataFile(std::string file_name, std::ios::openmode mode):
     data_file_(std::make_unique<std::fstream>()) {
     setFileName(file_name);
     open(file_name_, mode);
 }
 
-
+// Make sure file is closed upon destruction of DataFile object
 DataFile::~DataFile() {
     close();
 }
 
 /***** OPEN/CLOSE FUNCTIONS *****/
 
-void DataFile::open(FileMode mode) {
+void DataFile::open(std::ios::openmode mode) {
     if (file_name_.empty())
         return;
     
-    switch (mode) {
-        case FileMode::readonly:
-            io_mode_ = std::ios::binary | std::ios::in;
-            break;
-        case FileMode::overwrite:
-            io_mode_ = std::ios::binary | std::ios::out;
-            break;
-        case FileMode::edit:
-            io_mode_ = std::ios::binary | (std::ios::in | std::ios::out);
-            break;
-    }
+    ios_openmode = mode;
     
-    data_file_->open(file_name_, io_mode_);
+    // switch (mode) {
+    //     case FileMode::readonly:
+    //         ios_openmode = std::ios::binary | std::ios::in;
+    //         break;
+    //     case FileMode::overwrite:
+    //         ios_openmode = std::ios::binary | std::ios::out; 
+    //         break;
+    //     case FileMode::edit:
+    //         ios_openmode = std::ios::binary | (std::ios::in | std::ios::out);
+    //         break;
+    // }
+    
+    data_file_->open(file_name_, ios_openmode);
 
     // if file not opened (doesn't exist), use fstream to open file for writing,
     // which will create a new file if it doesn't already exist
     if (!data_file_->is_open()) {
         data_file_->open(file_name_, std::ios::binary | std::ios::out);
         data_file_->close();
-        data_file_->open(file_name_, io_mode_);
+        data_file_->open(file_name_, ios_openmode);
     }
 
     if (!data_file_->is_open())
         throw std::ios_base::failure("Failed to open or create the file.");
 }
 
-void DataFile::open(std::string file_name, FileMode mode) {
+void DataFile::open(std::string file_name, std::ios::openmode mode) {
     setFileName(file_name);
     open(mode);
 }
@@ -93,7 +95,7 @@ int64_t DataFile::getFileSize() const {
     return static_cast<int64_t>(file_size);
 }
 
-std::ios_base::openmode DataFile::getOpenMode() const { return io_mode_; };
+std::ios_base::openmode DataFile::getOpenMode() const { return ios_openmode; };
 
 int64_t DataFile::getReadPos() const {
     return static_cast<int64_t>(data_file_->tellg());
@@ -307,6 +309,9 @@ void DataFile::hexDump(int64_t start, int64_t size) {
     printf("\n\n");
     printf("     File:  %s\n", file_name_.c_str());
     printf("     Size:  %d bytes\n", getFileSize());
+    if (end == 0) {
+        return;
+    }
     printf("================================================================================\n");
 
     // print the hex dump
