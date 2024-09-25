@@ -10,17 +10,17 @@
 
 // std::ios::openmode constants
 //
-// edit         = std::ios::binary | std::ios::in | std::ios::out
-// readonly     = std::ios::binary | std::ios::in
-// overwrite    = std::ios::binary | std::ios::out
+// edit      = std::ios::binary | std::ios::in | std::ios::out
+// readonly  = std::ios::binary | std::ios::in
+// overwrite = std::ios::binary | std::ios::out
 namespace FileMode {
     // read/write - std::ios::binary | std::ios::in | std::ios::out
     static const std::ios::openmode edit = std::ios::binary | std::ios::in | std::ios::out;
     // read only - std::ios::binary | std::ios::in
     static const std::ios::openmode readonly = std::ios::binary | std::ios::in;
     // write only - std::ios::binary | std::ios::out
-    // will clear the contents of any file opened
-    // or create a new file if it doesn't already exist
+    // will truncate the contents of any file that already exists
+    // or will create a new file if it doesn't already exist
     static const std::ios::openmode overwrite = std::ios::binary | std::ios::out;
 };
 
