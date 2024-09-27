@@ -4,7 +4,9 @@
 
 /***** STATIC CONSTANTS *****/
 
-const std::string DataFile::default_file_extension_ = ".dat";
+// uses ".dat" as default file extension.
+const std::string DataFile::default_file_extension = ".dat";
+const std::string DataFile::default_file_path = ".\\";
 
 /***** CONSTRUCTORS/DESTRUCTOR *****/
 
@@ -14,12 +16,20 @@ const std::string DataFile::default_file_extension_ = ".dat";
 // and creates a unique_ptr to an fstream
 DataFile::DataFile():
     file_name_(""),
-    file_extension_(default_file_extension_),
+    file_extension_(default_file_extension),
     data_file_(std::make_unique<std::fstream>()),
-    ios_openmode(std::ios::binary) { };
+    ios_openmode_(std::ios::binary) { }
+
 
 DataFile::DataFile(std::string file_name, std::ios::openmode mode):
     data_file_(std::make_unique<std::fstream>()) {
+    setFileName(file_name);
+    open(file_name_, mode);
+}
+
+DataFile::DataFile(std::string file_name, std::string file_path, std::ios::openmode mode):
+    data_file_(std::make_unique<std::fstream>()),
+    file_path_(file_path) {
     setFileName(file_name);
     open(file_name_, mode);
 }
@@ -35,28 +45,28 @@ void DataFile::open(std::ios::openmode mode) {
     if (file_name_.empty())
         return;
     
-    ios_openmode = mode;
+    ios_openmode_ = mode;
     
     // switch (mode) {
-    //     case FileMode::readonly:
-    //         ios_openmode = std::ios::binary | std::ios::in;
+    //     case OpenMode::readonly:
+    //         ios_openmode_ = std::ios::binary | std::ios::in;
     //         break;
-    //     case FileMode::overwrite:
-    //         ios_openmode = std::ios::binary | std::ios::out; 
+    //     case OpenMode::overwrite:
+    //         ios_openmode_ = std::ios::binary | std::ios::out; 
     //         break;
-    //     case FileMode::edit:
-    //         ios_openmode = std::ios::binary | (std::ios::in | std::ios::out);
+    //     case OpenMode::edit:
+    //         ios_openmode_ = std::ios::binary | (std::ios::in | std::ios::out);
     //         break;
     // }
     
-    data_file_->open(file_name_, ios_openmode);
+    data_file_->open(file_path_ + file_name_, ios_openmode_);
 
     // if file not opened (doesn't exist), use fstream to open file for writing,
     // which will create a new file if it doesn't already exist
     if (!data_file_->is_open()) {
         data_file_->open(file_name_, std::ios::binary | std::ios::out);
         data_file_->close();
-        data_file_->open(file_name_, ios_openmode);
+        data_file_->open(file_path_ + file_name_, ios_openmode_);
     }
 
     if (!data_file_->is_open())
@@ -65,6 +75,12 @@ void DataFile::open(std::ios::openmode mode) {
 
 void DataFile::open(std::string file_name, std::ios::openmode mode) {
     setFileName(file_name);
+    open(mode);
+}
+
+void DataFile::open(std::string file_name, std::string file_path, std::ios::openmode mode) {
+    setFileName(file_name);
+    setFilePath(file_path);
     open(mode);
 }
 
@@ -80,28 +96,42 @@ std::string DataFile::getFileName() const { return file_name_; }
 
 std::string DataFile::getFileExtension() const { return file_extension_.substr(1); }
 
+std::string DataFile::getFilePath() const { return file_path_; }
+
 int64_t DataFile::getFileSize() const {
     // check if file is open
     if (!isOpen())
         return -1;  // indicates error
+
     // save current position
     std::streampos curr_pos = data_file_->tellg();
-    // move to end of file and save position
+    // move to end of file and save position as file size
     data_file_->seekg(0, std::ios::end);
-    std::streampos file_size = data_file_->tellg();
+    int64_t file_size = static_cast<int64_t>(data_file_->tellg());
     // move back to current position
     data_file_->seekg(curr_pos);
+
     // return end position, which is the file size in bytes
-    return static_cast<int64_t>(file_size);
+    return file_size;
 }
 
-std::ios_base::openmode DataFile::getOpenMode() const { return ios_openmode; };
+// Returns the current std::ios::openmode for the file.
+// If file is closed, returns the last openmode used.
+std::ios_base::openmode DataFile::getOpenMode() const { return ios_openmode_; };
 
 int64_t DataFile::getReadPos() const {
+    // check if file is open, return -1 if it is not
+    if (!isOpen())
+        return -1;
+
     return static_cast<int64_t>(data_file_->tellg());
 }
 
 int64_t DataFile::getWritePos() const {
+    // check if file is open, return -1 if it is not
+    if (!isOpen())
+        return -1;
+
     return static_cast<int64_t>(data_file_->tellp());
 }
 
@@ -111,20 +141,15 @@ void DataFile::setFileName(std::string file_name) {
     if (isOpen()) {
         throw std::runtime_error("File is already open. Cannot change file name at this time.");
     }
-    size_t idx;
-    if (file_name[0] == '.') {
-        idx = file_name.substr(1).find_last_of('.');
-    } else {
-        idx = file_name.find_last_of('.');
-    }
+    size_t index = file_name.find_last_of('.');
     
-    if (idx == std::string::npos) {
+    if (index == std::string::npos) {
         if (file_extension_.empty()) {
-            setFileExtension(default_file_extension_);
+            setFileExtension(default_file_extension);
         }
         file_name_ = file_name + file_extension_;
-    } else if (file_name.substr(idx) != file_extension_) {
-        file_extension_ = file_name.substr(idx + 1);
+    } else if (file_name.substr(index) != file_extension_) {
+        file_extension_ = file_name.substr(index);
         file_name_ = file_name;
     } else {
         file_name_ = file_name;
@@ -138,18 +163,17 @@ void DataFile::setFileExtension(std::string extension) {
         file_extension_ = extension;
     }
 
-    size_t idx;
-    if (file_name_[0] == '.') {
-        idx = file_name_.substr(1).find_last_of('.');
-    } else {
-        idx = file_name_.find_last_of('.');
-    }
-    if (idx == std::string::npos) {
+    size_t index = file_name_.find_last_of('.');
+    if (index == std::string::npos) {
         file_name_ = file_name_ + file_extension_;
     } else {
-        file_name_ = file_name_.substr(0, idx + 1) + file_extension_;
+        file_name_ = file_name_.substr(0, index) + file_extension_;
     }
 
+}
+
+void DataFile::setFilePath(std::string file_path) {
+    file_path_ = file_path;
 }
 
 void DataFile::setReadPos(int64_t pos) {
@@ -202,6 +226,7 @@ void DataFile::setWritePosBegin() {
     
     data_file_->seekp(0, std::ios::beg);
 }
+
 void DataFile::setWritePosEnd() {
     // check if file is open
     if (!isOpen())
@@ -213,44 +238,66 @@ void DataFile::setWritePosEnd() {
 
 /***** FILE STATUS/FLAGS *****/
 
+// Wrapper for std::fstream.is_open().
+// Returns true if file is open.
 bool DataFile::isOpen() const { return data_file_->is_open(); }
 
+// Wrapper for std::fstream.eof().
+// Returns true if eofbit is set.
 bool DataFile::eof() const { return data_file_->eof(); }
 
+// Wrapper for std::fstream.good().
+// Returns true if no error flags are set.
 bool DataFile::good() const { return data_file_->good(); }
 
+// Wrapper for std::fstream.fail().
+// Returns true if either badbit or failbit are set.
 bool DataFile::fail() const { return data_file_->fail(); }
 
+// Wrapper for std::fstream.bad().
+// Returns true if badbit is set.
 bool DataFile::bad() const { return data_file_->bad(); }
 
+// Wrapper for std::fstream.clear().
+// Resets the error state.
+// Does not support setting specific error bits.
 void DataFile::clear() { data_file_->clear(); }
 
 /***** READ FUNCTIONS *****/
+
 
 void DataFile::read(std::string &str) {
     // check if file is open
     if (!isOpen())
         throw std::runtime_error("File is not open.");
+
     // check if at eof
     if (eof())
         throw std::out_of_range("End of file reached.");
+
+    // read string length
     uint16_t len;
     read(&len);
 
-    std::vector<char> buffer(len + 1);  // Use vector for safe memory allocation
+    // create char buffer and read string into it
+    std::vector<char> buffer(len + 1);
     readArray(buffer.data(), len);
 
-    // if (data_file_->gcount() != len)
-    //     throw std::ios_base::failure("Failed to read the complete string data.");
-    
-    buffer[len] = '\0';  // Null-terminate
-        
+    // verify that entire string was successfully read
+    if (data_file_->gcount() != len)
+        throw std::ios_base::failure("Failed to read the complete string data.");
+
+    // add null terminator to char buffer
+    buffer[len] = '\0';
+
+    // convert to std::string
     str = std::string(buffer.data());
 }
 
 void DataFile::read(std::string &str, int64_t pos) {
-    // setReadPos will verify file is open and pos is valid
+    // move read pointer
     setReadPos(pos);
+    // read from file
     read(str);
 }
 
@@ -279,30 +326,30 @@ void DataFile::write(const std::string &str) {
 }
 
 void DataFile::write(const std::string &str, int64_t pos) {
-    // setWritePos will verify file is open and pos is valid
+    // move write pointer
     setWritePos(pos);
+    // write to file
     write(str);
 }
 
 // Prints out a hex dump to the console from data_file_ from start to end
 // 
-// Reads entire range at once; may not be suitable for large file sizes.
+// Reads entire range at once; may not be suitable for large ranges.
 void DataFile::hexDump(int64_t start, int64_t size) {
     // check if file is open
     if (!isOpen())
         throw std::runtime_error("File is not open.");
-    
-    // int64_t size = end - start;           // number of bytes to display
+
+    // calculate memory address of end of hex dump
     int64_t end = start + size;
 
     // initialize buffer and read the range in bytes
-    // setReadPos(start);
-    std::vector<unsigned char> buff(size);
-    readArray(buff.data(), size, start);
+    std::vector<unsigned char> buffer(size);
+    readArray(buffer.data(), size, start);
 
-    int64_t address = start;              // starting address
-    int64_t index = 0;
-    int64_t lines = ((size - 1) / 16) + 1;    // number of lines of 16 bytes + 1 for any extra
+    int64_t address = start;                    // starting address
+    int64_t index = 0;                          // buffer index
+    int64_t lines = ((size - 1) / 16) + 1;      // number of lines of 16 bytes + 1 for partial line
 
     // print hex dump header
     // printf(" Address:    0  1  2  3  4  5  6  7   8  9  A  B  C  D  E  F\n");
@@ -320,38 +367,40 @@ void DataFile::hexDump(int64_t start, int64_t size) {
         printf("|%08X| ", address);
         
         // loop through the next 8 bytes (if they exist) and print the bytes in
-        // hex with a leading 0, or leave a blank space if that bye doens't exist
+        // hex with a leading 0, or leave a blank space if that byte doens't exist
         for (int i = 0; i < 8; ++i) {
             if (address + i < end) {
-                printf(" %02X", buff[index + i]);
+                printf(" %02X", buffer[index + i]);
             } else {
                 printf("   ");
             }
         }
 
-        // add a space between first 8 bytes
+        // add an extra space between first and last set of 8 bytes
         printf(" ");
 
         // loop through the next 8 bytes (if they exist) and print the bytes in
         // hex with a leading 0, or leave a blank space if that bye doens't exist
         for (int i = 8; i < 16; ++i) {
             if (address + i < end) {
-                printf(" %02X", buff[index + i]);
+                printf(" %02X", buffer[index + i]);
             } else {
                 printf("   ");
             }
         }
-        
+
         // print 2 spaces and a | to separate ascii representation
         printf("  |");
 
         // loop through the same 16 bytes (if they exist) as above, printing the
         // ascii character if it is printable, '.' if it is unprintable, or an empty
         // space if the byte doesn't exist
+        unsigned char curr_byte = 0;
         for (int i = 0; i < 16; ++i) {
             if (address + i < end){
-                if (buff[index + i] >= 32 && buff[index + i] <= 126) {
-                    printf("%c", buff[index + i]);
+                curr_byte = buffer[index + i];
+                if (curr_byte >= 32 && curr_byte <= 126) {
+                    printf("%c", curr_byte);
                 } else {
                     printf(".");
                 }
@@ -363,7 +412,7 @@ void DataFile::hexDump(int64_t start, int64_t size) {
         // print | to close off ascii section and go to the next line
         printf("|\n");
 
-        // increment address by one line
+        // increment address and index by one line
         address += 16;
         index += 16;
     }
@@ -371,7 +420,7 @@ void DataFile::hexDump(int64_t start, int64_t size) {
     // print hex dump footer
     printf("================================================================================\n");
     // printf("    File: %s  Size: %d\n", file_name_.c_str(), getFileSize());
-    printf("    Range:  0x%08X ~ 0x%08X\n", start, end);
+    printf("    Range:  0x%08X ~ 0x%08X\n", start, end - 1);
     printf("   Length:  %d bytes\n\n", size);
 }
 

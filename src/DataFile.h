@@ -1,4 +1,13 @@
-
+/**
+ * @file DataFile.h
+ * @author Danielle Fukunaga
+ * @brief A wrapper class for fstream to make my life slightly easier.
+ * @version 0.1
+ * @date 2024-09-25
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 
 #ifndef DATA_FILE_H
 #define DATA_FILE_H
@@ -13,7 +22,17 @@
 // edit      = std::ios::binary | std::ios::in | std::ios::out
 // readonly  = std::ios::binary | std::ios::in
 // overwrite = std::ios::binary | std::ios::out
-namespace FileMode {
+/**
+ * @brief A set of constants for the open modes used.
+ * 
+ * - edit      = std::ios::binary | std::ios::in | std::ios::out
+ * 
+ * - readonly  = std::ios::binary | std::ios::in
+ * 
+ * - overwrite = std::ios::binary | std::ios::out
+ * 
+ */
+namespace OpenMode {
     // read/write - std::ios::binary | std::ios::in | std::ios::out
     static const std::ios::openmode edit = std::ios::binary | std::ios::in | std::ios::out;
     // read only - std::ios::binary | std::ios::in
@@ -22,21 +41,24 @@ namespace FileMode {
     // will truncate the contents of any file that already exists
     // or will create a new file if it doesn't already exist
     static const std::ios::openmode overwrite = std::ios::binary | std::ios::out;
-};
+}
 
 class DataFile {
 public:
-    // constructors/destructor
     DataFile();
-    DataFile(std::string file_name, std::ios::openmode mode = FileMode::edit);
+    DataFile(std::string file_name, std::ios::openmode mode = OpenMode::edit);
+    DataFile(std::string file_name, std::string file_path, std::ios::openmode mode = OpenMode::edit);
     ~DataFile();
 
     // open/close functions
-    void                            open(std::ios::openmode mode = FileMode::edit);
-    void                            open(std::string file_name, std::ios::openmode mode = FileMode::edit);
+
+    void                            open(std::ios::openmode mode = OpenMode::edit);
+    void                            open(std::string file_name, std::ios::openmode mode = OpenMode::edit);
+    void                            open(std::string file_name, std::string file_path, std::ios::openmode mode = OpenMode::edit);
     void                            close();
 
     // getters/accessors
+
     std::string                     getFileName() const;
     std::string                     getFileExtension() const;
     std::string                     getFilePath() const;
@@ -46,6 +68,7 @@ public:
     int64_t                         getWritePos() const;
 
     // setters/mutators
+
     void                            setFileName(std::string file_name);
     void                            setFileExtension(std::string extension);
     void                            setFilePath(std::string file_path);
@@ -56,7 +79,8 @@ public:
     void                            setWritePosBegin();
     void                            setWritePosEnd();
 
-    // fstream status
+    // fstream status wrapper functions
+
     bool                            isOpen() const;
     bool                            eof() const;
     bool                            good() const;
@@ -65,6 +89,7 @@ public:
     void                            clear();
 
     // read functions
+
     template<typename T> void       read(T *data);
     template<typename T> void       read(T *data, int64_t pos);
     template<typename T> void       readArray(T *data, int64_t len);
@@ -73,6 +98,7 @@ public:
     void                            read(std::string &str, int64_t pos);
 
     // write functions
+
     template<typename T> void       write(const T *data);
     template<typename T> void       write(const T *data, int64_t pos);
     template<typename T> void       writeArray(const T *data, int64_t len);
@@ -81,19 +107,24 @@ public:
     void                            write(const std::string &str, int64_t pos);
 
     // utility functions
+
     void                            hexDump(int64_t start, int64_t size);
     void                            hexDump();
 
+    // static constants
+
+    static const std::string        default_file_extension;
+    static const std::string        default_file_path;
+
 private:
     // member variables
+
     std::unique_ptr<std::fstream>   data_file_;
     std::string                     file_name_;
     std::string                     file_extension_;
     std::string                     file_path_;
-    std::ios_base::openmode         ios_openmode;
+    std::ios_base::openmode         ios_openmode_;
 
-    // static constants
-    static const std::string        default_file_extension_;
 };
 
 /***** TEMPLATED READ FUNCTIONS *****/
@@ -115,12 +146,9 @@ void DataFile::read(T *data) {
 
 template<typename T>
 void DataFile::read(T *data, int64_t pos) {
-    // check if file is open
-    if (!isOpen())
-        throw std::runtime_error("File is not open or could not be opened.");
-    
-    // move read pointer and read from file
+    // move read pointer
     setReadPos(pos);
+    // read from file
     read(data);
 }
 
@@ -141,7 +169,9 @@ void DataFile::readArray(T *data, int64_t len) {
 
 template<typename T>
 void DataFile::readArray(T *data, int64_t len, int64_t pos) {
+    // move read pointer
     setReadPos(pos);
+    // read from file
     readArray(data, len);
 }
 
@@ -151,6 +181,10 @@ void DataFile::readArray(T *data, int64_t len, int64_t pos) {
 
 template<typename T>
 void DataFile::write(const T *data) {
+    // check if file is open
+    if (!isOpen())
+        throw std::runtime_error("File is not open or could not be opened.");
+
     // write to file
     data_file_->write(reinterpret_cast<const char*>(data), sizeof(T));
 
@@ -162,20 +196,27 @@ void DataFile::write(const T *data) {
 
 template<typename T>
 void DataFile::write(const T *data, int64_t pos) {
-    // move write pointer and write to file
+    // move write pointer
     setWritePos(pos);
+    // write to file
     write(data);
 }
 
 template<typename T>
 void DataFile::writeArray(const T *data, int64_t len) {
-    // write(data, len * sizeof(T));
+    // check if file is open
+    if (!isOpen())
+        throw std::runtime_error("File is not open or could not be opened.");
+
+    // write to file
     data_file_->write(reinterpret_cast<const char*>(data), len * sizeof(T));
 }
 
 template<typename T>
 void DataFile::writeArray(const T *data, int64_t len, int64_t pos) {
+    // move write pointer
     setWritePos(pos);
+    // write to file
     writeArray(data, len);
 }
 
