@@ -25,15 +25,16 @@ int main() {
     // DataFile file("test.dat");
     DataFile file;
     file.setFileExtension(".dat");
-    file.setFileName(".\\doctest\\data\\test");
-    file.open(FileMode::overwrite);
+    file.setFileName("test");
+    file.setFilePath(".\\doctest\\data\\");
+    file.open(OpenMode::overwrite);
 
     // file.setWritePos(0);
     write_test_1.serialize(file);
     write_test_2.serialize(file, write_test_1.getSize());
 
     file.close();
-    file.open(FileMode::readonly);
+    file.open(OpenMode::readonly);
     file.hexDump();
     file.hexDump(0, write_test_1.getSize());
     file.hexDump(write_test_1.getSize(), write_test_2.getSize());
@@ -53,11 +54,11 @@ int main() {
     // file.hexDump();
 
     file.close();
-    file.open(FileMode::edit);
+    file.open(OpenMode::edit);
     file.setWritePosEnd();
     write_test_1.serialize(file);
     file.close();
-    file.open(FileMode::readonly);
+    file.open(OpenMode::readonly);
     std::cout << "test\n";
     file.hexDump();
 

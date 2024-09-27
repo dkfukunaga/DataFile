@@ -17,34 +17,40 @@ TEST_CASE("Verify DataFile functions") {
     TestItem test_item_1(str_1, 0xEFCDAB8967452301, 420.69);
     TestItem test_item_2(str_2, 0x1032547698BADCFE, 69.420);
 
-    std::string file_name(".\\doctest\\data\\test_name");
+    std::string file_name("test_name");
+    std::string file_path(".\\doctest\\data\\");
 
-    DataFile file(file_name, FileMode::overwrite);
+    DataFile file(file_name, file_path, OpenMode::overwrite);
+    file.close();
+
+    file.open(OpenMode::readonly);
+    REQUIRE(file.getFileSize() == 0);
     file.close();
 
     SUBCASE("verify FileModes") {
         std::ios::openmode file_mode = std::ios::binary | std::ios::in | std::ios::out;
-        file.open(FileMode::edit);
+        file.open(OpenMode::edit);
         CHECK(file.getOpenMode() == file_mode);
         file.close();
 
         file_mode = std::ios::binary | std::ios::in;
-        file.open(FileMode::readonly);
+        file.open(OpenMode::readonly);
         CHECK(file.getOpenMode() == file_mode);
         file.close();
 
         file_mode = std::ios::binary | std::ios::out;
-        file.open(FileMode::overwrite);
+        file.open(OpenMode::overwrite);
         CHECK(file.getOpenMode() == file_mode);
         file.close();
     }
 
     SUBCASE("verify getters and setters") {
-        file.open(FileMode::readonly);
+        file.open(OpenMode::readonly);
         file.hexDump();
 
         CHECK(file.isOpen());
         CHECK(file.getFileName() == file_name + ".dat");
+        CHECK(file.getFilePath() == file_path);
         CHECK(file.getFileExtension() == "dat");
         CHECK(file.getFileSize() == 0);
 
@@ -52,11 +58,11 @@ TEST_CASE("Verify DataFile functions") {
 
         CHECK_FALSE(file.isOpen());
 
-        file.setFileName(".\\doctest\\data\\test_file.dat");
+        file.setFileName("test_file.dat");
         file.setFileExtension("dt2");
-        file.open(FileMode::overwrite);
+        file.open(OpenMode::overwrite);
 
-        CHECK(file.getFileName() == ".\\doctest\\data\\test_file.dt2");
+        CHECK(file.getFileName() == "test_file.dt2");
         CHECK(file.getFileExtension() == "dt2");
 
         test_item_1.serialize(file);
@@ -90,7 +96,7 @@ TEST_CASE("Verify DataFile functions") {
         file.open();
         test_item_1.serialize(file);
 
-        short num = -1;
+        short num = 0xCDAB;
         file.setWritePosBegin();
         file.write(&num, test_item_1.getSize());
         file.hexDump();
@@ -143,7 +149,7 @@ TEST_CASE("Verify DataFile functions") {
 
         TestItem read_item;
 
-        file.open(FileMode::readonly);
+        file.open(OpenMode::readonly);
 
         read_item.deserialize(file);
 
