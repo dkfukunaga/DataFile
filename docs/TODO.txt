@@ -14,3 +14,6 @@ x add hexDump(start, size)
     - test for exceptions?
     - verify open/close working as intended
 x start testing
+
+- consider using <filesystem> to check file path and adjust to save test data to .\doctest\data
+    - https://en.cppreference.com/w/cpp/filesystem/path/relative_path
