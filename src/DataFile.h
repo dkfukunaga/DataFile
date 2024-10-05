@@ -17,11 +17,7 @@
 #include <string>
 #include <vector>
 
-// std::ios::openmode constants
-//
-// edit      = std::ios::binary | std::ios::in | std::ios::out
-// readonly  = std::ios::binary | std::ios::in
-// overwrite = std::ios::binary | std::ios::out
+
 /**
  * @brief A set of constants for the open modes used.
  * 
@@ -115,6 +111,7 @@ public:
 
     static const std::string        default_file_extension;
     static const std::string        default_file_path;
+    static const char               hex_values_[16];
 
 private:
     // member variables

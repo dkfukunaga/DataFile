@@ -7,6 +7,8 @@
 // uses ".dat" as default file extension.
 const std::string DataFile::default_file_extension = ".dat";
 const std::string DataFile::default_file_path = ".\\";
+const char DataFile::hex_values_[16] =
+    {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
 /***** CONSTRUCTORS/DESTRUCTOR *****/
 
@@ -354,12 +356,21 @@ void DataFile::hexDump(int64_t start, int64_t size) {
     // print hex dump header
     // printf(" Address:    0  1  2  3  4  5  6  7   8  9  A  B  C  D  E  F\n");
     printf("\n\n");
-    printf("     File:  %s\n", file_name_.c_str());
-    printf("     Size:  %d bytes\n", getFileSize());
+    printf("    File:   %s\n", file_name_.c_str());
+    printf("    Size:   %d bytes\n", getFileSize());
     if (end == 0) {
         return;
     }
-    printf("================================================================================\n");
+    printf(" Address:   ");
+    int hex_start = start % 16;
+    for (int i = hex_start; i < hex_start + 8; ++i) {
+        printf("%2c ", hex_values_[i % 16]);
+    }
+    printf(" ");
+    for (int i = hex_start + 8; i < hex_start + 16; ++i) {
+        printf("%2c ", hex_values_[i % 16]);
+    }
+    printf("\n================================================================================\n");
 
     // print the hex dump
     for (int line = 0; line < lines; ++line) {
@@ -420,8 +431,8 @@ void DataFile::hexDump(int64_t start, int64_t size) {
     // print hex dump footer
     printf("================================================================================\n");
     // printf("    File: %s  Size: %d\n", file_name_.c_str(), getFileSize());
-    printf("    Range:  0x%08X ~ 0x%08X\n", start, end - 1);
-    printf("   Length:  %d bytes\n\n", size);
+    printf("   Range:   0x%08X ~ 0x%08X\n", start, end - 1);
+    printf("  Length:   %d bytes\n\n", size);
 }
 
 // Prints out a hex dump to the console from data_file_ of whole file
