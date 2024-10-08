@@ -49,6 +49,7 @@ TEST_CASE("Verify DataFile functions") {
         file.hexDump();
 
         CHECK(file.isOpen());
+        CHECK(file.isEmpty());
         CHECK(file.getFileName() == file_name + ".dat");
         CHECK(file.getFilePath() == file_path);
         CHECK(file.getFileExtension() == "dat");
