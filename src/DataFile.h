@@ -104,6 +104,7 @@ public:
 
     // utility functions
 
+    bool                            isEmpty() const;
     void                            hexDump(int64_t start, int64_t size);
     void                            hexDump();
 

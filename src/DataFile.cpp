@@ -334,6 +334,9 @@ void DataFile::write(const std::string &str, int64_t pos) {
     write(str);
 }
 
+// returns true if file is empty, false otherwise
+bool DataFile::isEmpty() const { return getFileSize() == 0; }
+
 // Prints out a hex dump to the console from data_file_ from start to end
 // 
 // Reads entire range at once; may not be suitable for large ranges.
